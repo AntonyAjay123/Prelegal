@@ -54,7 +54,10 @@ export function buildCoverPage(
   data: NdaFormData,
   coverPageTemplate: string
 ): string {
-  let text = coverPageTemplate;
+  // Normalize CRLF to LF first — the source file has Windows line endings,
+  // and the literal multi-line matches below use plain "\n" so they must
+  // agree with the string being searched or they silently fail to match.
+  let text = coverPageTemplate.replace(/\r\n/g, "\n");
 
   // Strip the `<label>hint text</label>` annotations that guide a human
   // filling the cover page by hand — redundant once fields are auto-filled.
@@ -148,10 +151,12 @@ export function buildStandardTerms(
     Jurisdiction: data.jurisdiction.trim() || "[Jurisdiction not provided]",
   };
 
-  return standardTermsTemplate.replace(
-    /<span class="coverpage_link">([^<]+)<\/span>/g,
-    (_match, label: string) => replacements[label] ?? label
-  );
+  return standardTermsTemplate
+    .replace(/\r\n/g, "\n")
+    .replace(
+      /<span class="coverpage_link">([^<]+)<\/span>/g,
+      (_match, label: string) => replacements[label] ?? label
+    );
 }
 
 export function buildCompletedNda(
