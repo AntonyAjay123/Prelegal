@@ -21,8 +21,8 @@ export default function Home() {
               Mutual NDA Creator
             </h1>
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Fill in the details below to generate a Common Paper Mutual
-              Non-Disclosure Agreement, then download the completed document.
+              Chat with the assistant to describe your deal, then review the
+              details before downloading the completed document.
             </p>
           </header>
           <NdaCreator

@@ -1,14 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import ChatPanel from "./ChatPanel";
 import NdaForm from "./NdaForm";
 import NdaPreview from "./NdaPreview";
-import {
-  buildCompletedNda,
-  defaultNdaFormData,
-  getMissingFields,
-  type NdaFormData,
-} from "@/lib/nda";
+import { useNdaChat } from "@/hooks/useNdaChat";
+import { buildCompletedNda, getMissingFields } from "@/lib/nda";
 
 interface NdaCreatorProps {
   standardTermsTemplate: string;
@@ -19,14 +16,15 @@ export default function NdaCreator({
   standardTermsTemplate,
   coverPageTemplate,
 }: NdaCreatorProps) {
-  const [data, setData] = useState<NdaFormData>(defaultNdaFormData);
+  const { messages, fields, isSending, error, sendMessage, retry, setFields } =
+    useNdaChat();
 
   const completedNda = useMemo(
-    () => buildCompletedNda(data, standardTermsTemplate, coverPageTemplate),
-    [data, standardTermsTemplate, coverPageTemplate]
+    () => buildCompletedNda(fields, standardTermsTemplate, coverPageTemplate),
+    [fields, standardTermsTemplate, coverPageTemplate]
   );
 
-  const missingFields = useMemo(() => getMissingFields(data), [data]);
+  const missingFields = useMemo(() => getMissingFields(fields), [fields]);
 
   function handleDownload() {
     const blob = new Blob([completedNda], {
@@ -40,8 +38,8 @@ export default function NdaCreator({
         .trim()
         .replace(/[\\/:*?"<>|]/g, "")
         .replace(/\s+/g, "-");
-    const party1 = slugify(data.party1Name) || "party-1";
-    const party2 = slugify(data.party2Name) || "party-2";
+    const party1 = slugify(fields.party1Name) || "party-1";
+    const party2 = slugify(fields.party2Name) || "party-2";
     link.download = `mutual-nda-${party1}-${party2}.md`;
     document.body.appendChild(link);
     link.click();
@@ -51,8 +49,22 @@ export default function NdaCreator({
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-      <div>
-        <NdaForm data={data} onChange={setData} />
+      <div className="flex flex-col gap-4">
+        <ChatPanel
+          messages={messages}
+          isSending={isSending}
+          error={error}
+          onSend={sendMessage}
+          onRetry={retry}
+        />
+        <details className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+          <summary className="cursor-pointer text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            Review &amp; edit details
+          </summary>
+          <div className="mt-4">
+            <NdaForm data={fields} onChange={setFields} />
+          </div>
+        </details>
       </div>
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-4">
