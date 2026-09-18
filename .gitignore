@@ -54,6 +54,8 @@ dmypy.json
 # FastAPI / Alembic
 *.sqlite3
 *.db
+backend/data/
+backend/static/
 
 ### Node / Next.js ###
 node_modules/
