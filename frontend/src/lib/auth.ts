@@ -10,3 +10,7 @@ export function isAuthenticated(): boolean {
 export function setAuthenticated(): void {
   window.sessionStorage.setItem(AUTH_STORAGE_KEY, "true");
 }
+
+export function clearAuthenticated(): void {
+  window.sessionStorage.removeItem(AUTH_STORAGE_KEY);
+}

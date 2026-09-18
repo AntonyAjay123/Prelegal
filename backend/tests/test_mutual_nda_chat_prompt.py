@@ -44,6 +44,35 @@ def test_prompt_does_not_treat_default_form_state_as_known():
     )
 
     prompt = build_system_prompt(current_fields)
+    known_line = prompt.split("Fields already known:")[1].split("\n")[0]
 
-    assert "party1Name" not in prompt.split("Fields already known:")[1]
-    assert "'purpose':" in prompt or '"purpose":' in prompt.split("Fields already known:")[1]
+    assert "party1Name" not in known_line
+    assert "'purpose':" in known_line or '"purpose":' in known_line
+
+
+def test_prompt_lists_still_missing_required_fields():
+    current_fields = MutualNdaFieldsPatch(party1_name="Jane Doe", governing_law="Delaware")
+
+    prompt = build_system_prompt(current_fields)
+    missing_line = prompt.split("Required fields still missing:")[1]
+
+    assert "party2Name" in missing_line
+    assert "effectiveDate" in missing_line
+    assert "jurisdiction" in missing_line
+    assert "party1Name" not in missing_line
+    assert "governingLaw" not in missing_line
+
+
+def test_prompt_reports_nothing_missing_once_all_required_fields_known():
+    current_fields = MutualNdaFieldsPatch(
+        party1_name="Jane Doe",
+        party2_name="Acme Corp",
+        purpose="evaluating a potential business relationship between the parties",
+        effective_date="2026-01-15",
+        governing_law="Delaware",
+        jurisdiction="New Castle, DE",
+    )
+
+    prompt = build_system_prompt(current_fields)
+
+    assert "none — every required field is known" in prompt
