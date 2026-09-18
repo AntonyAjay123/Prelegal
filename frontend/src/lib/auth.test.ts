@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { isAuthenticated, setAuthenticated } from "./auth";
 
-function createLocalStorageStub() {
+function createSessionStorageStub() {
   let store: Record<string, string> = {};
   return {
     getItem: (key: string) => store[key] ?? null,
@@ -18,7 +18,7 @@ function createLocalStorageStub() {
 }
 
 beforeEach(() => {
-  vi.stubGlobal("window", { localStorage: createLocalStorageStub() });
+  vi.stubGlobal("window", { sessionStorage: createSessionStorageStub() });
 });
 
 describe("auth", () => {
