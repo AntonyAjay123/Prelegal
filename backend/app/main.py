@@ -7,9 +7,9 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import health, mutual_nda_chat
+from app.api import document_chat, health
 from app.db import reset_db
-from app.services.mutual_nda_chat import ChatServiceUnavailableError
+from app.services.document_chat import ChatServiceUnavailableError
 
 DEFAULT_STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(health.router, prefix="/api")
-app.include_router(mutual_nda_chat.router, prefix="/api")
+app.include_router(document_chat.router, prefix="/api")
 
 
 @app.exception_handler(ChatServiceUnavailableError)
