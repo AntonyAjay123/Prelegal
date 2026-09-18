@@ -9,6 +9,15 @@ from app.schemas import ChatMessage, MutualNdaChatRequest, MutualNdaChatTurnResu
 
 MUTUAL_NDA_CHAT_MODEL = "gpt-5.4-mini"
 
+REQUIRED_FIELDS = [
+    "party1Name",
+    "party2Name",
+    "purpose",
+    "effectiveDate",
+    "governingLaw",
+    "jurisdiction",
+]
+
 
 class ChatServiceUnavailableError(Exception):
     """Raised when the AI chat backend cannot currently serve a request
@@ -25,6 +34,12 @@ def build_system_prompt(current_fields: MutualNdaFieldsPatch) -> str:
         for key, value in current_fields.model_dump(exclude_none=True, by_alias=True).items()
         if value != ""
     }
+    missing_required = [field for field in REQUIRED_FIELDS if field not in known]
+    missing_required_text = (
+        ", ".join(missing_required)
+        if missing_required
+        else "none — every required field is known"
+    )
     return (
         "You are a legal-intake assistant helping a user complete a Mutual "
         "Non-Disclosure Agreement (Mutual NDA) through conversation.\n\n"
@@ -59,13 +74,25 @@ def build_system_prompt(current_fields: MutualNdaFieldsPatch) -> str:
         "provides or confirms it (including accepting an offered default). Never "
         "restate already-known values in `fields` — leave them absent so we don't "
         "clobber prior state.\n"
+        "- If the user's answer is vague, ambiguous, incomplete, or doesn't "
+        "actually answer what you asked — e.g. a relative or partial date "
+        "('next month', 'sometime in the spring') instead of a real calendar "
+        "date, a name that could be either a person or a company, or a "
+        "one-word answer to a two-part question — do NOT guess a value or "
+        "leave it to a default. Ask a specific clarifying follow-up question "
+        "instead, and leave that field out of `fields` until you have a "
+        "confident, unambiguous answer.\n"
         "- If the user asks to change a previously given value, populate that "
         "field with the new value.\n"
-        "- Once all required fields are known, tell the user the document is "
-        "ready to review in the preview pane.\n"
+        "- Before telling the user the document is ready to review, check the "
+        "'Required fields still missing' list below (accounting for anything "
+        "you're populating in `fields` this turn). If anything is still "
+        "missing, keep asking about it instead — never claim the document is "
+        "ready while a required field is unanswered or only vaguely answered.\n"
         "- Stay strictly on the Mutual NDA. If asked about anything else, say "
         "you can only help with the Mutual NDA right now.\n\n"
-        f"Fields already known: {known or 'none yet'}."
+        f"Fields already known: {known or 'none yet'}.\n"
+        f"Required fields still missing: {missing_required_text}."
     )
 
 

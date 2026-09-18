@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { isAuthenticated, setAuthenticated } from "./auth";
+import { clearAuthenticated, isAuthenticated, setAuthenticated } from "./auth";
 
 function createSessionStorageStub() {
   let store: Record<string, string> = {};
@@ -29,5 +29,11 @@ describe("auth", () => {
   it("becomes authenticated after setAuthenticated", () => {
     setAuthenticated();
     expect(isAuthenticated()).toBe(true);
+  });
+
+  it("becomes unauthenticated again after clearAuthenticated", () => {
+    setAuthenticated();
+    clearAuthenticated();
+    expect(isAuthenticated()).toBe(false);
   });
 });
